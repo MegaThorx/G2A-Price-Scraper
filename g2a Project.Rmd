@@ -12,6 +12,7 @@ suppressMessages(library(httr))
 suppressMessages(library(RCurl))
 suppressMessages(library(XML))
 suppressMessages(library(RSQLite))
+suppressMessages(library(jsonlite))
 
 con = dbConnect(SQLite(), "C:/JANICE/UC DAVIS/g2a project/g2a_data")
 dbListTables(con)
@@ -47,4 +48,36 @@ selectedOffer = getNodeSet(docTree, "//div[@class = 'selected-price']/text()")[[
 gameRegion = getNodeSet(docTree, "//div[@class = 'game-info-content']/text()")[[8]]
 gameRating = getNodeSet(docTree, "//span[@class = 'score']/text()")[[1]]
 getNodeSet(docTree, "//link[@href = 'https://www.g2a.com/dead-space-3-ea-origin-cd-key-global.html']")[[1]]
+
+
+
+# Get's the price and other information for a single game, then returns a list with all the information about it.
+# Example: 
+# getSingleGamePrice('dead-space-3-ea-origin-cd-key-global')
+getSingleGamePrice = function(gameTitleURL){
+  # returned value
+  gatheredData = c() 
+  
+  # grab the front page data. This doesn't get the prices, but this data doesn't change much so maybe make this not run every time?
+  doc = GET(getRelativeURL(paste('http://www.g2a.com/', gameTitleURL, '.html',sep = "")))
+  docPlainText = gettext(doc)
+  docTree = htmlTreeParse(doc, useInternalNodes = TRUE)
+  
+  # get the ProductID and to gather the list of prices.
+  regexProdID = 'productID[[:space:]]*=[[:space:]]*([0-9]+)'
+  gregRegex = regexec(regexProdID, docPlainText)
+  gatheredData['prodID'] = regmatches(docPlainText, gregRegex)[[1]][2]
+  auctions =  GET(paste('https://www.g2a.com/marketplace/product/auctions/?id=',gatheredData['prodID'],'&v=0',sep = ""))
+  auctions = fromJSON(gettext(auctions))
+  # need to go through each value in the list and convert it from it's country's price to USD, then sort to the lowest value
+  
+  
+  gatheredData['prodName'] = as(getNodeSet(docTree, "//div//h1/text()")[[1]],"character")
+  gatheredData['gameRegion'] = as(getNodeSet(docTree, "//div[@class = 'game-info-content']/text()")[[8]],"character")
+
+  return(gatheredData)
+
+}
+
+
 ```
