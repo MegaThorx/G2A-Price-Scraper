@@ -1,0 +1,50 @@
+---
+title: "g2a.com Project"
+author: "Janice Luong"
+date: "March 20, 2016"
+output: pdf_document
+---
+
+Started on March 20th, 2016.
+
+```{r, warning=FALSE}
+suppressMessages(library(httr))
+suppressMessages(library(RCurl))
+suppressMessages(library(XML))
+suppressMessages(library(RSQLite))
+
+con = dbConnect(SQLite(), "C:/JANICE/UC DAVIS/g2a project/g2a_data")
+dbListTables(con)
+
+# dbGetQuery(con, "DROP TABLE price")
+
+# create the list of games
+# Game ID | Game Name | Game URL 
+dbGetQuery(con, "CREATE TABLE games (
+           id UNSIGNED INT  PRIMARY KEY, 
+           name VARCHAR, 
+           URL VARCHAR
+           )")
+
+# create the Price table
+# Entry ID | Game ID | Date | Price 
+dbGetQuery(con, "CREATE TABLE price (
+           id UNSIGNED INT PRIMARY KEY, 
+           game_id UNSIGNED INT, 
+           date DATE, 
+           price FLOAT(6,2)
+           )")
+
+# get all the game URLs
+# website = "http://www.g2a.com/"
+website = getRelativeURL("http://www.g2a.com/dead-space-3-ea-origin-cd-key-global.html")
+doc = GET(website)
+# tabs = readHTMLTable(rawToChar(doc$content), stringsAsFactors = F)
+docTree = htmlTreeParse(doc, useInternalNodes = TRUE)
+
+prodName = getNodeSet(docTree, "//div//h1/text()")[[1]]
+selectedOffer = getNodeSet(docTree, "//div[@class = 'selected-price']/text()")[[1]]
+gameRegion = getNodeSet(docTree, "//div[@class = 'game-info-content']/text()")[[8]]
+gameRating = getNodeSet(docTree, "//span[@class = 'score']/text()")[[1]]
+getNodeSet(docTree, "//link[@href = 'https://www.g2a.com/dead-space-3-ea-origin-cd-key-global.html']")[[1]]
+```
