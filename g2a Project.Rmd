@@ -1,6 +1,6 @@
 ---
 title: "g2a.com Project"
-author: "Janice Luong"
+author: "Janice Luong", "Jack Cole"
 date: "March 20, 2016"
 output: pdf_document
 ---
